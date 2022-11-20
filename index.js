@@ -16,6 +16,8 @@ function main(datasetId = "my_dataset", tableId = "my_table") {
   const d3 = require('d3-node')().d3;
   const d3nBar = require('d3node-barchart');
   const output = require('d3node-output');
+  const { writeToPath } = require('@fast-csv/format');
+  const fs = require('fs');
 
   async function getTable() {
     // Retrieves table named "my_table" in "my_dataset".
@@ -52,9 +54,20 @@ function main(datasetId = "my_dataset", tableId = "my_table") {
     //   sentiments[i] = rows[i]['sentiment']
     // }
     // console.log(timestamps);
-    data = d3.json(rows)
-    console.log(typeof data)
-    output('./output/sentimentbar', d3nBar({ data: data }));
+    //data = d3.json(rows)
+    //console.log(typeof data)
+    const path = `data/bardata.csv`;
+    //const data = [{ name: 'Stevie', id: 10 }, { name: 'Ray', id: 20 }];
+    const options2 = { headers: true, quoteColumns: true };
+
+    writeToPath(path, rows, options)
+        .on('error', err => console.error(err))
+        .on('finish', () => console.log('Done writing.'));
+    
+    const csvString = fs.readFileSync('data/bardata.csv').toString();
+    const data = d3.csvParse(csvString);
+    //output('./output/sentimentbar', d3nBar({ data: data }));
+    output('output/sentimentbar', d3nBar({ data: data }));
   }
   getTable();
   // [END bigquery_get_table]
