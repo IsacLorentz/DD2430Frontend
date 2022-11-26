@@ -19,22 +19,15 @@ function main(datasetId = "my_dataset", tableId = "my_table") {
      * TODO(developer): Uncomment the following lines before running the sample
      */
     const projectId = "starry-argon-368412";
-    const datasetId = "news";
-    const tableId = "predictions";
+    const datasetId = "fillers";
+    const tableId = "predictions_mock_isac2";
 
     // Retrieve table reference
     const dataset = bigquery.dataset(datasetId);
     const [table] = await dataset.table(tableId).get();
 
-    const sqlQuery = `select subquery.week as key, avg(subquery.sentimentscore) as value from (SELECT 
-    extract(week from timestamp_seconds(cast(timestamp as int64))) as week, 
-    sentiment, cast(timestamp as int64) as intval,
-    case sentiment
-      when 'POSITIVE' then score
-      else -1*score
-      end
-      as sentimentscore
-      FROM \`${projectId}.${datasetId}.${tableId}\` order by key asc) as subquery group by week`;
+    const sqlQuery = `SELECT timestamp as key, sentiment as value
+        FROM \`${projectId}.${datasetId}.${tableId}\` order by key asc`;
 
     const options = {
       query: sqlQuery,

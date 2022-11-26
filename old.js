@@ -1,3 +1,11 @@
+console.log("hello world");
+
+// dataset id: starry-argon-368412.fillers
+
+// table id: starry-argon-368412.fillers.predictions_mock_isac2
+
+//("use strict");
+
 function main(datasetId = "my_dataset", tableId = "my_table") {
   // [START bigquery_get_table]
   // Import the Google Cloud client library
@@ -7,7 +15,6 @@ function main(datasetId = "my_dataset", tableId = "my_table") {
   // const d3n = new D3Node()      // initializes D3 with container element
   const d3 = require("d3-node")().d3;
   const d3nBar = require("d3node-barchart");
-  const d3nLine = require("d3node-linechart");
   const output = require("d3node-output");
   const { writeToPath } = require("@fast-csv/format");
   const fs = require("fs");
@@ -19,22 +26,15 @@ function main(datasetId = "my_dataset", tableId = "my_table") {
      * TODO(developer): Uncomment the following lines before running the sample
      */
     const projectId = "starry-argon-368412";
-    const datasetId = "news";
-    const tableId = "predictions";
+    const datasetId = "fillers";
+    const tableId = "predictions_mock_isac2";
 
     // Retrieve table reference
     const dataset = bigquery.dataset(datasetId);
     const [table] = await dataset.table(tableId).get();
 
-    const sqlQuery = `select subquery.week as key, avg(subquery.sentimentscore) as value from (SELECT 
-    extract(week from timestamp_seconds(cast(timestamp as int64))) as week, 
-    sentiment, cast(timestamp as int64) as intval,
-    case sentiment
-      when 'POSITIVE' then score
-      else -1*score
-      end
-      as sentimentscore
-      FROM \`${projectId}.${datasetId}.${tableId}\` order by key asc) as subquery group by week`;
+    const sqlQuery = `SELECT timestamp, sentiment
+      FROM \`${projectId}.${datasetId}.${tableId}\``;
 
     const options = {
       query: sqlQuery,
@@ -42,6 +42,10 @@ function main(datasetId = "my_dataset", tableId = "my_table") {
     };
 
     const [rows] = await bigquery.query(options);
+
+    const timestamps = [];
+    const sentiments = [];
+    //const [rows] = await table.getRows()
     console.log("Table:");
     //console.log(table.getRows());
     console.log(rows);
@@ -52,18 +56,18 @@ function main(datasetId = "my_dataset", tableId = "my_table") {
     // console.log(timestamps);
     //data = d3.json(rows)
     //console.log(typeof data)
-    // const path = `data/bardata.csv`;
-    // //const data = [{ name: 'Stevie', id: 10 }, { name: 'Ray', id: 20 }];
-    // const options2 = { headers: true, quoteColumns: true };
+    const path = `data/bardata.csv`;
+    //const data = [{ name: 'Stevie', id: 10 }, { name: 'Ray', id: 20 }];
+    const options2 = { headers: true, quoteColumns: true };
 
-    // writeToPath(path, rows, options)
-    //   .on("error", (err) => console.error(err))
-    //   .on("finish", () => console.log("Done writing."));
+    writeToPath(path, rows, options)
+      .on("error", (err) => console.error(err))
+      .on("finish", () => console.log("Done writing."));
 
-    // const csvString = fs.readFileSync("data/bardata.csv").toString();
-    // const data = d3.csvParse(csvString);
+    const csvString = fs.readFileSync("data/bardata.csv").toString();
+    const data = d3.csvParse(csvString);
     //output('./output/sentimentbar', d3nBar({ data: data }));
-    output("output/sentimentline", d3nLine({ data: rows }));
+    output("output/sentimentbar", d3nBar({ data: data }));
   }
   getTable();
   // [END bigquery_get_table]
