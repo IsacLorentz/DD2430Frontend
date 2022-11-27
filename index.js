@@ -1,10 +1,6 @@
 function main(datasetId = "my_dataset", tableId = "my_table") {
-  // [START bigquery_get_table]
-  // Import the Google Cloud client library
   const { BigQuery } = require("@google-cloud/bigquery");
   const bigquery = new BigQuery();
-  // const D3Node = require('d3-node')
-  // const d3n = new D3Node()      // initializes D3 with container element
   const d3 = require("d3-node")().d3;
   const d3nBar = require("d3node-barchart");
   const d3nLine = require("d3node-linechart");
@@ -13,11 +9,6 @@ function main(datasetId = "my_dataset", tableId = "my_table") {
   const fs = require("fs");
 
   async function getTable() {
-    // Retrieves table named "my_table" in "my_dataset".
-
-    /**
-     * TODO(developer): Uncomment the following lines before running the sample
-     */
     const projectId = "starry-argon-368412";
     const datasetId = "news";
     const tableId = "predictions";
@@ -26,46 +17,92 @@ function main(datasetId = "my_dataset", tableId = "my_table") {
     const dataset = bigquery.dataset(datasetId);
     const [table] = await dataset.table(tableId).get();
 
-    const sqlQuery = `select subquery.week as key, avg(subquery.sentimentscore) as value from (SELECT 
-    extract(week from timestamp_seconds(cast(timestamp as int64))) as week, 
-    sentiment, cast(timestamp as int64) as intval,
-    case sentiment
-      when 'POSITIVE' then score
-      else -1*score
-      end
-      as sentimentscore
-      FROM \`${projectId}.${datasetId}.${tableId}\` order by key asc) as subquery group by week`;
+    const dailyQuery = `with
+      sentimentScores as (
+        SELECT 
+          extract(dayofyear from timestamp_seconds(cast(timestamp as int64))) as dayofyear, 
+          sentiment, cast(timestamp as int64) as intval,
+          case sentiment
+            when 'POSITIVE' then score
+            else -1*score
+            end
+            as sentimentscore
+            FROM \`${projectId}.${datasetId}.${tableId}\` order by dayofyear asc)
+    select dayofyear as key, avg(sentimentscore) as value from sentimentScores group by dayofyear order by dayofyear asc 
+            `;
 
-    const options = {
-      query: sqlQuery,
+    const weeklyQuery = `with
+      sentimentScores as (
+        SELECT 
+          extract(week from timestamp_seconds(cast(timestamp as int64))) as week, 
+          sentiment, cast(timestamp as int64) as intval,
+          case sentiment
+            when 'POSITIVE' then score
+            else -1*score
+            end
+            as sentimentscore
+            FROM \`${projectId}.${datasetId}.${tableId}\` order by week asc)
+    select week as key, avg(sentimentscore) as value from sentimentScores group by week order by week asc 
+            `;
+
+    const monthlyQuery = `with
+      sentimentScores as (
+        SELECT 
+          extract(month from timestamp_seconds(cast(timestamp as int64))) as month, 
+          sentiment, cast(timestamp as int64) as intval,
+          case sentiment
+            when 'POSITIVE' then score
+            else -1*score
+            end
+            as sentimentscore
+            FROM \`${projectId}.${datasetId}.${tableId}\` order by month asc)
+    select month as key, avg(sentimentscore) as value from sentimentScores group by month order by month asc 
+            `;
+
+    const dailyOptions = {
+      query: dailyQuery,
       // Location must match that of the dataset(s) referenced in the query.
     };
 
-    const [rows] = await bigquery.query(options);
-    console.log("Table:");
-    //console.log(table.getRows());
-    console.log(rows);
-    // for (let i = 0; i < rows.length; i++){
-    //   timestamps[i] = rows[i]['timestamp']
-    //   sentiments[i] = rows[i]['sentiment']
-    // }
-    // console.log(timestamps);
-    //data = d3.json(rows)
-    //console.log(typeof data)
-    // const path = `data/bardata.csv`;
-    // //const data = [{ name: 'Stevie', id: 10 }, { name: 'Ray', id: 20 }];
-    // const options2 = { headers: true, quoteColumns: true };
+    const weeklyOptions = {
+      query: weeklyQuery,
+      // Location must match that of the dataset(s) referenced in the query.
+    };
 
-    // writeToPath(path, rows, options)
-    //   .on("error", (err) => console.error(err))
-    //   .on("finish", () => console.log("Done writing."));
+    const monthlyOptions = {
+      query: monthlyQuery,
+      // Location must match that of the dataset(s) referenced in the query.
+    };
 
-    // const csvString = fs.readFileSync("data/bardata.csv").toString();
-    // const data = d3.csvParse(csvString);
-    //output('./output/sentimentbar', d3nBar({ data: data }));
-    output("output/sentimentline", d3nLine({ data: rows }));
+    const [daily] = await bigquery.query(dailyOptions);
+    // console.log("daily:");
+    // //console.log(table.getRows());
+    // console.log(daily);
+    const [weekly] = await bigquery.query(weeklyOptions);
+    const [monthly] = await bigquery.query(monthlyOptions);
+
+    dailyContainer =
+      '<div id="container"><h2>Daily average sentiment (day of year)</h2><div id="chart"></div></div>';
+    weeklyContainer =
+      '<div id="container"><h2>Weekly average sentiment</h2><div id="chart"></div></div>';
+    monthlyContainer =
+      '<div id="container"><h2>Monthly average sentiment (month number)</h2><div id="chart"></div></div>';
+    // dailyStyle =
+    //   { xAxis: 'Sentiment score', yAxis: 'Day of year' };
+
+    output(
+      "output/sentimentdaily",
+      d3nLine({ data: daily, container: dailyContainer })
+    );
+    output(
+      "output/sentimentweekly",
+      d3nLine({ data: weekly, container: weeklyContainer })
+    );
+    output(
+      "output/sentimentmonthly",
+      d3nLine({ data: monthly, container: monthlyContainer })
+    );
   }
   getTable();
-  // [END bigquery_get_table]
 }
 main(...process.argv.slice(2));
