@@ -1,21 +1,13 @@
-function main(datasetId = "my_dataset", tableId = "my_table") {
+function main() {
   const { BigQuery } = require("@google-cloud/bigquery");
   const bigquery = new BigQuery();
-  const d3 = require("d3-node")().d3;
-  const d3nBar = require("d3node-barchart");
   const d3nLine = require("d3node-linechart");
   const output = require("d3node-output");
-  const { writeToPath } = require("@fast-csv/format");
-  const fs = require("fs");
 
   async function getTable() {
     const projectId = "starry-argon-368412";
     const datasetId = "news";
     const tableId = "predictions";
-
-    // Retrieve table reference
-    const dataset = bigquery.dataset(datasetId);
-    const [table] = await dataset.table(tableId).get();
 
     const dailyQuery = `with
       sentimentScores as (
@@ -61,23 +53,17 @@ function main(datasetId = "my_dataset", tableId = "my_table") {
 
     const dailyOptions = {
       query: dailyQuery,
-      // Location must match that of the dataset(s) referenced in the query.
     };
 
     const weeklyOptions = {
       query: weeklyQuery,
-      // Location must match that of the dataset(s) referenced in the query.
     };
 
     const monthlyOptions = {
       query: monthlyQuery,
-      // Location must match that of the dataset(s) referenced in the query.
     };
 
     const [daily] = await bigquery.query(dailyOptions);
-    // console.log("daily:");
-    // //console.log(table.getRows());
-    // console.log(daily);
     const [weekly] = await bigquery.query(weeklyOptions);
     const [monthly] = await bigquery.query(monthlyOptions);
 
@@ -87,8 +73,6 @@ function main(datasetId = "my_dataset", tableId = "my_table") {
       '<div id="container"><h2>Weekly average sentiment</h2><div id="chart"></div></div>';
     monthlyContainer =
       '<div id="container"><h2>Monthly average sentiment (month number)</h2><div id="chart"></div></div>';
-    // dailyStyle =
-    //   { xAxis: 'Sentiment score', yAxis: 'Day of year' };
 
     output(
       "output/sentimentdaily",
