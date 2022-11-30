@@ -13,6 +13,10 @@ import PrimeTabView from "primevue/tabview";
 import PrimeTabPanel from "primevue/tabpanel";
 import PrimeToast from "primevue/toast";
 import ToastService from "primevue/toastservice";
+import PrimeInputNumber from "primevue/inputnumber";
+import PrimeButton from "primevue/button";
+import PrimeProgressSpinner from "primevue/progressspinner";
+import PrimeDropdown from "primevue/dropdown";
 
 const app = createApp(App);
 
@@ -24,5 +28,9 @@ app.component("PrimeDialog", PrimeDialog);
 app.component("PrimeTabView", PrimeTabView);
 app.component("PrimeTabPanel", PrimeTabPanel);
 app.component("PrimeToast", PrimeToast);
+app.component("PrimeInputNumber", PrimeInputNumber);
+app.component("PrimeButton", PrimeButton);
+app.component("PrimeProgressSpinner", PrimeProgressSpinner);
+app.component("PrimeDropdown", PrimeDropdown);
 
 app.mount("#app");

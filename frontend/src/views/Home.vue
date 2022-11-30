@@ -1,80 +1,32 @@
 <template>
   <div>
-    <prime-tab-view>
+    <prime-tab-view lazy>
       <prime-tab-panel header="Scatter">
-        <scatter :chartData="dataCollection"></scatter>
+        <scatter-plot />
       </prime-tab-panel>
-      <prime-tab-panel header="Sentiment"> second </prime-tab-panel>
+      <prime-tab-panel header="Sentiment">
+        <sentiment-plot />
+      </prime-tab-panel>
+      <prime-tab-panel header="Cluster Configuration">
+        <cluster-configuration />
+      </prime-tab-panel>
     </prime-tab-view>
   </div>
 </template>
 
 <script>
-import { getData } from "@/services/bigquery";
-import { onBeforeMount, ref } from "vue";
-import { useToast } from "primevue/usetoast";
-import Scatter from "@/components/ScatterPlot.vue";
+import ScatterPlot from "@/components/ScatterPlot.vue";
+import SentimentPlot from "@/components/SentimentPlot.vue";
+import ClusterConfiguration from "@/components/ClusterConfiguration.vue";
 
 export default {
   name: "HomeView",
   components: {
-    Scatter,
+    ScatterPlot,
+    SentimentPlot,
+    ClusterConfiguration,
   },
-  setup() {
-    const toast = useToast();
-    const dataCollection = ref({});
-
-    const loadData = async () => {
-      try {
-        var rowsGivenCentroid = {};
-        const data = await getData();
-
-        data.map((row) => {
-          if (
-            !Object.prototype.hasOwnProperty.call(
-              rowsGivenCentroid,
-              row.CENTROID_ID
-            )
-          )
-            rowsGivenCentroid[row.CENTROID_ID] = [];
-
-          rowsGivenCentroid[row.CENTROID_ID].push({
-            x: row.principal_component_1,
-            y: row.principal_component_2,
-          });
-        });
-
-        dataCollection.value = {
-          datasets: Object.entries(rowsGivenCentroid).map(([key, data]) => ({
-            label: key.toString(),
-            backgroundColor: [
-              "rgba(" +
-                (42 * key).toString() +
-                ", " +
-                (42 * key).toString() +
-                ", 208, 1)",
-            ],
-            data: data,
-          })),
-        };
-      } catch (error) {
-        toast.add({
-          severity: "error",
-          summary: "Error",
-          detail: "Could not get data",
-          life: 3000,
-        });
-      }
-    };
-
-    onBeforeMount(async () => {
-      await loadData();
-    });
-
-    return {
-      dataCollection,
-    };
-  },
+  setup() {},
 };
 </script>
 
