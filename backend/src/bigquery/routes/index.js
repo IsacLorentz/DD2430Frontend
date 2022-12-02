@@ -5,6 +5,7 @@ const controller = require("../controller");
 /* GET */
 router.get("/data", controller.getData);
 router.get("/sentiment-over-time", controller.getSentimentOverTime);
+router.get("/occurences-over-time", controller.getOccurencesOverTime);
 router.get("/get-cluster-count", controller.getNumberOfClusters);
 
 /* POST */

@@ -8,12 +8,20 @@
       placeholder="Select a time unit"
       @change="loadData"
     />
+    <prime-dropdown
+      v-model="selectedTopic"
+      :options="topics"
+      optionLabel="name"
+      optionValue="key"
+      placeholder="Select a topic"
+      @change="loadData"
+    />
     <Line :chart-data="chartData" :chart-options="chartOptions" />
   </div>
 </template>
 
 <script>
-import { getSentimentOverTime } from "@/services/bigquery";
+import { getSentimentOverTime, getClusterCount } from "@/services/bigquery";
 import { onBeforeMount, ref } from "vue";
 import { useToast } from "primevue/usetoast";
 import { Line } from "vue-chartjs";
@@ -45,7 +53,7 @@ export default {
   setup() {
     const chartOptions = {
       responsive: true,
-      //maintainAspectRatio: false,
+      maintainAspectRatio: false,
     };
 
     const timeUnitEpochs = {
@@ -64,8 +72,28 @@ export default {
       { name: "Week", unit: "week" },
       { name: "Day", unit: "day" },
     ]);
+    const topics = ref([]);
+    const selectedTopic = ref(null);
+
+    const loadTopics = async () => {
+      try {
+        const clusterCount = await getClusterCount();
+        topics.value = Array.from(Array(clusterCount).keys()).map((value) => ({
+          name: value + 1,
+          key: value + 1,
+        }));
+      } catch (error) {
+        toast.add({
+          severity: "error",
+          summary: "Error",
+          detail: "Could not load topics, " + error,
+          life: 3000,
+        });
+      }
+    };
 
     const loadData = async () => {
+      if (topics.value == []) return;
       try {
         const fromDateEpoch = Math.floor(fromDate.value.getTime() / 1000);
         const toDateEpoch = Math.floor(toDate.value.getTime() / 1000);
@@ -73,7 +101,8 @@ export default {
         const data = await getSentimentOverTime(
           fromDateEpoch,
           toDateEpoch,
-          timeUnit.value
+          timeUnit.value,
+          selectedTopic.value
         );
 
         chartData.value = {
@@ -104,6 +133,7 @@ export default {
     };
 
     onBeforeMount(async () => {
+      await loadTopics();
       await loadData();
     });
 
@@ -113,6 +143,8 @@ export default {
       timeUnits,
       timeUnit,
       loadData,
+      topics,
+      selectedTopic,
     };
   },
 };

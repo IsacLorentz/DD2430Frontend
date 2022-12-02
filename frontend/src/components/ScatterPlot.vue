@@ -35,7 +35,7 @@ export default {
   setup() {
     const chartOptions = {
       responsive: true,
-      //maintainAspectRatio: false,
+      maintainAspectRatio: false,
     };
 
     const toast = useToast();
