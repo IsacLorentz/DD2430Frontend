@@ -5,8 +5,8 @@ export const getData = () => {
   return get(BIGQUERY_URL + "/data");
 };
 
-export const getSentimentOverTime = (fromDate, toDate, timeUnit, topic) => {
-  return get(BIGQUERY_URL + "/sentiment-over-time", {
+export const getTrendsOverTime = (fromDate, toDate, timeUnit, topic) => {
+  return get(BIGQUERY_URL + "/trends-over-time", {
     fromDate,
     toDate,
     timeUnit,

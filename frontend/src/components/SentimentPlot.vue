@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { getSentimentOverTime, getClusterCount } from "@/services/bigquery";
+import { getTrendsOverTime, getClusterCount } from "@/services/bigquery";
 import { onBeforeMount, ref } from "vue";
 import { useToast } from "primevue/usetoast";
 import { Line } from "vue-chartjs";
@@ -98,7 +98,7 @@ export default {
         const fromDateEpoch = Math.floor(fromDate.value.getTime() / 1000);
         const toDateEpoch = Math.floor(toDate.value.getTime() / 1000);
 
-        const data = await getSentimentOverTime(
+        const data = await getTrendsOverTime(
           fromDateEpoch,
           toDateEpoch,
           timeUnit.value,
@@ -119,6 +119,11 @@ export default {
               label: "Sentiment",
               backgroundColor: "#f87979",
               data: data.map((row) => row.sentiment),
+            },
+            {
+              label: "Trend",
+              backgroundColor: "#337979",
+              data: data.map((row) => row.occurences),
             },
           ],
         };

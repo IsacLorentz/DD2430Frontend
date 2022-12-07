@@ -11,7 +11,7 @@ async function getData() {
   return rows;
 }
 
-async function getSentimentOverTime(requestQuery) {
+async function getTrendsOverTime(requestQuery) {
   if (!requestQuery.hasOwnProperty("fromDate")) requestQuery["fromDate"] = 0;
 
   if (!requestQuery.hasOwnProperty("topic")) requestQuery["topic"] = "";
@@ -43,56 +43,9 @@ async function getSentimentOverTime(requestQuery) {
   }
 
   const sqlQuery = `
-    SELECT AVG(sentiment) as sentiment, bucket
+    SELECT AVG(sentiment) as sentiment, COUNT(*) as occurences, bucket
     FROM (
       SELECT (case when sentiment = 'POSITIVE' then 1 else -1 end) as sentiment, TIMESTAMP_SECONDS(CAST(timestamp AS INT64)) as time, floor(timestamp/${timeUnitUnixEpoch}) as bucket
-      FROM \`news.predictions_with_centroids\`
-      WHERE timestamp > ${fromUnixEpoch} AND timestamp < ${toUnixEpoch} ${requestQuery["topic"]}
-    )
-    GROUP BY bucket
-    ORDER BY bucket
-  `;
-
-  const [rows] = await db.runSql(sqlQuery);
-
-  return rows;
-}
-
-async function getOccurencesOverTime(requestQuery) {
-  if (!requestQuery.hasOwnProperty("fromDate")) requestQuery["fromDate"] = 0;
-
-  if (!requestQuery.hasOwnProperty("topic")) requestQuery["topic"] = "";
-  else requestQuery["topic"] = `AND CENTROID_ID = ${requestQuery["topic"]}`;
-
-  if (!requestQuery.hasOwnProperty("toDate"))
-    requestQuery["toDate"] = new Date();
-
-  if (!requestQuery.hasOwnProperty("timeUnit"))
-    throw Error("Query did not have timeUnit");
-
-  const fromUnixEpoch = parseInt(requestQuery.fromDate);
-  const toUnixEpoch = parseInt(requestQuery.toDate);
-
-  var timeUnitUnixEpoch = -1;
-
-  switch (requestQuery.timeUnit) {
-    case "month":
-      timeUnitUnixEpoch = 2628000;
-      break;
-    case "week":
-      timeUnitUnixEpoch = 604800;
-      break;
-    case "day":
-      timeUnitUnixEpoch = 86400;
-      break;
-    default:
-      throw Error("timeUnit is not valid.");
-  }
-
-  const sqlQuery = `
-    SELECT COUNT(*) as occurences, bucket
-    FROM (
-      SELECT TIMESTAMP_SECONDS(CAST(timestamp AS INT64)) as time, floor(timestamp/${timeUnitUnixEpoch}) as bucket
       FROM \`news.predictions_with_centroids\`
       WHERE timestamp > ${fromUnixEpoch} AND timestamp < ${toUnixEpoch} ${requestQuery["topic"]}
     )
@@ -149,8 +102,7 @@ async function getNumberOfClusters() {
 
 module.exports = {
   getData,
-  getSentimentOverTime,
-  getOccurencesOverTime,
+  getTrendsOverTime,
   createNewTopicClusters,
   getNumberOfClusters,
 };

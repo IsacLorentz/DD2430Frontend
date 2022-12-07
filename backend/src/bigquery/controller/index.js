@@ -9,18 +9,9 @@ async function getData(req, res, next) {
   }
 }
 
-async function getSentimentOverTime(req, res, next) {
+async function getTrendsOverTime(req, res, next) {
   try {
-    res.json(await services.getSentimentOverTime(req.query));
-  } catch (err) {
-    console.error(`Error while getting data`, err.message);
-    next(err);
-  }
-}
-
-async function getOccurencesOverTime(req, res, next) {
-  try {
-    res.json(await services.getOccurencesOverTime(req.query));
+    res.json(await services.getTrendsOverTime(req.query));
   } catch (err) {
     console.error(`Error while getting data`, err.message);
     next(err);
@@ -47,8 +38,7 @@ async function getNumberOfClusters(req, res, next) {
 
 module.exports = {
   getData,
-  getSentimentOverTime,
-  getOccurencesOverTime,
+  getTrendsOverTime,
   createNewTopicClusters,
   getNumberOfClusters,
 };
